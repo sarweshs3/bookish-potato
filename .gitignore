@@ -1,0 +1,9 @@
+
+# Secrets and local credentials
+group_vars/nodeservers/vault.yml
+.vault-pass
+*.retry
+
+# Local SSH keys/certificates
+*.pem
+*.key

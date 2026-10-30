@@ -1,0 +1,31 @@
+
+---
+- name: Configure Rocky Linux 9 Node.js application servers
+  hosts: nodeservers
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: common
+      tags: [common, updates]
+    - role: firewall
+      tags: [firewall]
+    - role: security
+      tags: [security, ssh]
+    - role: app_user
+      tags: [app_user]
+    - role: nodejs
+      tags: [nodejs]
+    - role: app_deploy
+      tags: [app_deploy, app]
+    - role: app_environment
+      tags: [environment, app]
+      when: deploy_environment_file | bool
+    - role: app_service
+      tags: [app_service, app]
+    - role: nginx
+      tags: [nginx]
+    - role: logrotate
+      tags: [logrotate, logging]
+    - role: healthcheck
+      tags: [healthcheck, monitoring]

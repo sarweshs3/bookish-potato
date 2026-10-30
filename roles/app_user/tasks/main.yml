@@ -1,0 +1,32 @@
+
+---
+- name: Create application group
+  ansible.builtin.group:
+    name: "{{ app_group }}"
+    state: present
+    system: true
+
+- name: Create dedicated application user
+  ansible.builtin.user:
+    name: "{{ app_user }}"
+    group: "{{ app_group }}"
+    state: present
+    system: true
+    shell: /bin/bash
+    create_home: true
+    home: "{{ app_home }}"
+
+- name: Ensure application home directory permissions
+  ansible.builtin.file:
+    path: "{{ app_home }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"
+
+- name: Install optional SSH public key for application user
+  ansible.posix.authorized_key:
+    user: "{{ app_user }}"
+    state: present
+    key: "{{ app_authorized_key }}"
+  when: app_authorized_key | default('') | length > 0

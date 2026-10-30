@@ -1,0 +1,38 @@
+
+#!/usr/bin/env bash
+set -u
+
+HEALTH_URL={{ healthcheck_url | quote }}
+LOG_FILE={{ healthcheck_log_file | quote }}
+ALERT_EMAIL={{ alert_email | quote }}
+TIMESTAMP=$(/usr/bin/date '+%Y-%m-%d %H:%M:%S %z')
+
+STATUS_CODE=$(/usr/bin/curl \
+  --silent \
+  --show-error \
+  --output /dev/null \
+  --write-out '%{http_code}' \
+  --max-time 10 \
+  "$HEALTH_URL" 2>/dev/null) || STATUS_CODE="000"
+
+if [[ -z "${STATUS_CODE}" ]]; then
+  STATUS_CODE="000"
+fi
+
+printf '%s status_code=%s\n' "$TIMESTAMP" "$STATUS_CODE" >> "$LOG_FILE"
+
+if [[ "$STATUS_CODE" != "200" ]]; then
+  SUBJECT="ALERT: Application health check failed"
+  MESSAGE=$(cat <<EOF
+Application health check failed.
+
+URL: ${HEALTH_URL}
+HTTP status: ${STATUS_CODE}
+Timestamp: ${TIMESTAMP}
+Server: $(/usr/bin/hostname)
+
+Please check the application service and its logs.
+EOF
+)
+  printf '%s\n' "$MESSAGE" | /usr/bin/mail -s "$SUBJECT" "$ALERT_EMAIL"
+fi

@@ -1,0 +1,29 @@
+
+---
+- name: Verify application entry point exists
+  ansible.builtin.stat:
+    path: "{{ app_dir }}/{{ app_entrypoint }}"
+  register: app_entrypoint_file
+
+- name: Fail if application entry point is missing
+  ansible.builtin.fail:
+    msg: >-
+      Application entry point {{ app_dir }}/{{ app_entrypoint }} does not exist.
+      Update app_entrypoint to the correct file.
+  when: not app_entrypoint_file.stat.exists
+
+- name: Install systemd unit for the Node.js application
+  ansible.builtin.template:
+    src: nodejs-webapp.service.j2
+    dest: "/etc/systemd/system/{{ service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart application service
+
+- name: Enable and start application service
+  ansible.builtin.systemd_service:
+    name: "{{ service_name }}"
+    enabled: true
+    state: started
+    daemon_reload: true

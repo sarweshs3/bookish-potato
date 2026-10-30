@@ -1,0 +1,27 @@
+
+---
+- name: Upgrade all packages when explicitly requested
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  when: common_update_packages | bool
+
+- name: Check whether a reboot is required
+  ansible.builtin.command:
+    cmd: needs-restarting -r
+  register: common_reboot_required
+  changed_when: false
+  failed_when: common_reboot_required.rc not in [0, 1, 2]
+  when: common_reboot_after_updates | bool
+
+- name: Reboot when required
+  ansible.builtin.reboot:
+    msg: "Reboot initiated by Ansible due to system updates"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+  when:
+    - common_reboot_after_updates | bool
+    - common_reboot_required.rc == 1

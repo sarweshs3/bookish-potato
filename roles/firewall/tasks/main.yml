@@ -1,0 +1,31 @@
+
+---
+- name: Install firewalld
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: Enable and start firewalld
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Allow required TCP ports in the selected zone
+  ansible.posix.firewalld:
+    zone: "{{ firewall_zone }}"
+    port: "{{ item }}"
+    state: enabled
+    permanent: true
+    immediate: true
+  loop: "{{ allowed_ports }}"
+
+- name: Read active firewall configuration
+  ansible.builtin.command:
+    cmd: "firewall-cmd --zone={{ firewall_zone }} --list-all"
+  register: firewall_status
+  changed_when: false
+
+- name: Display active firewall configuration
+  ansible.builtin.debug:
+    var: firewall_status.stdout

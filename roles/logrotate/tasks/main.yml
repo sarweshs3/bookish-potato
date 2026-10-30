@@ -1,0 +1,24 @@
+
+---
+- name: Ensure application log directory exists
+  ansible.builtin.file:
+    path: "{{ app_log_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"
+
+- name: Deploy logrotate configuration
+  ansible.builtin.template:
+    src: app-logrotate.j2
+    dest: /etc/logrotate.d/app
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Test logrotate configuration syntax
+  ansible.builtin.command:
+    cmd: "logrotate -d /etc/logrotate.d/app"
+  register: logrotate_test
+  changed_when: false
+  failed_when: logrotate_test.rc != 0

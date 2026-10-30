@@ -1,0 +1,6 @@
+
+---
+# Copy this file to vault.yml, replace the example values, and encrypt it with ansible-vault.
+vault_database_url: "postgresql://CHANGE_ME"
+vault_redis_url: "redis://CHANGE_ME"
+vault_app_secret: "CHANGE_ME"

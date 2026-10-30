@@ -1,0 +1,20 @@
+
+[Unit]
+Description=Node.js Web Application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_group }}
+WorkingDirectory={{ app_dir }}
+ExecStart={{ node_binary }} {{ app_dir }}/{{ app_entrypoint }}
+Restart=on-failure
+RestartSec=5
+Environment=NODE_ENV=production
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

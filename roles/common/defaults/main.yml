@@ -1,0 +1,4 @@
+
+---
+common_update_packages: false
+common_reboot_after_updates: false

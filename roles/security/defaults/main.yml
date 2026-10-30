@@ -1,0 +1,4 @@
+
+---
+configure_ssh_hardening: true
+configure_fail2ban: true

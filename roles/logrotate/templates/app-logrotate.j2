@@ -1,0 +1,12 @@
+
+{{ app_log_file }} {
+    daily
+    rotate {{ logrotate_retention }}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    su {{ app_user }} {{ app_group }}
+    create 0640 {{ app_user }} {{ app_group }}
+}

@@ -1,0 +1,12 @@
+
+---
+- name: Update Rocky Linux 9 servers and reboot when required
+  hosts: nodeservers
+  become: true
+  gather_facts: true
+  roles:
+    - role: common
+      vars:
+        common_update_packages: true
+        common_reboot_after_updates: true
+      tags: [maintenance, updates]

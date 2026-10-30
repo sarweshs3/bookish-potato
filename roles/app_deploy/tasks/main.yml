@@ -1,0 +1,79 @@
+
+---
+- name: Install Git
+  ansible.builtin.dnf:
+    name: git
+    state: present
+
+- name: Verify Node.js is installed
+  ansible.builtin.command:
+    cmd: node --version
+  register: app_deploy_node_version
+  changed_when: false
+
+- name: Verify npm is installed
+  ansible.builtin.command:
+    cmd: npm --version
+  register: app_deploy_npm_version
+  changed_when: false
+
+- name: Ensure application directory exists
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: "0755"
+
+- name: Clone or update application repository
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_dir }}"
+    version: "{{ repo_branch }}"
+    update: true
+    force: false
+  become_user: "{{ app_user }}"
+  register: app_git_result
+
+- name: Check whether package-lock.json exists
+  ansible.builtin.stat:
+    path: "{{ app_dir }}/package-lock.json"
+  register: app_package_lock
+
+- name: Check whether package.json exists
+  ansible.builtin.stat:
+    path: "{{ app_dir }}/package.json"
+  register: app_package_json
+
+- name: Fail if package.json is missing
+  ansible.builtin.fail:
+    msg: "No package.json found in {{ app_dir }}."
+  when: not app_package_json.stat.exists
+
+- name: Install dependencies with npm ci when lockfile exists
+  ansible.builtin.command:
+    cmd: npm ci
+    chdir: "{{ app_dir }}"
+  become_user: "{{ app_user }}"
+  when: app_package_lock.stat.exists
+  register: app_npm_ci
+  changed_when: app_npm_ci.rc == 0
+
+- name: Install dependencies with npm install when no lockfile exists
+  ansible.builtin.command:
+    cmd: npm install
+    chdir: "{{ app_dir }}"
+  become_user: "{{ app_user }}"
+  when: not app_package_lock.stat.exists
+  register: app_npm_install
+  changed_when: app_npm_install.rc == 0
+
+- name: Display deployment summary
+  ansible.builtin.debug:
+    msg:
+      - "Repository: {{ repo_url }}"
+      - "Application directory: {{ app_dir }}"
+      - "Application user: {{ app_user }}"
+      - "Git updated: {{ app_git_result.changed }}"
+      - "Node.js: {{ app_deploy_node_version.stdout }}"
+      - "npm: {{ app_deploy_npm_version.stdout }}"

@@ -1,0 +1,56 @@
+
+---
+# Common application settings
+app_user: nodeapp
+app_group: nodeapp
+app_home: /home/nodeapp
+app_dir: /home/nodeapp/app
+app_entrypoint: server.js
+service_name: nodejs-webapp
+node_binary: /usr/bin/node
+
+# Application source
+repo_url: "https://github.com/devopsyuva/nodejs_webapp_sample.git"
+repo_branch: main
+
+# Node.js installation
+node_version: "20"
+
+# Firewalld
+firewall_zone: public
+allowed_ports:
+  - "22/tcp"
+  - "80/tcp"
+  - "443/tcp"
+
+# SSH hardening
+configure_ssh_hardening: true
+configure_fail2ban: true
+# Set to a public key string if you want Ansible to install it for nodeapp.
+# Leave empty to skip authorized_keys management.
+app_authorized_key: ""
+
+# Nginx reverse proxy
+nginx_domain_name: "example.com"
+nginx_ssl_cert_path: "/etc/ssl/certs/nginx-selfsigned.crt"
+nginx_ssl_key_path: "/etc/ssl/private/nginx-selfsigned.key"
+nginx_app_upstream: "http://127.0.0.1:3000"
+
+# Environment file; secret variables are defined in the Ansible Vault file.
+deploy_environment_file: true
+
+# Application log rotation
+app_log_dir: /var/log/app
+app_log_file: /var/log/app/app.log
+logrotate_retention: 7
+
+# Health check
+healthcheck_url: "http://localhost:3000/health"
+healthcheck_log_dir: /var/log/app
+healthcheck_log_file: /var/log/app/healthcheck.log
+healthcheck_script: /usr/local/bin/app-healthcheck.sh
+alert_email: "admin@example.com"
+healthcheck_schedule_minute: "*/5"
+
+# Avoid rebooting as part of normal site configuration. Run maintenance.yml separately.
+reboot_after_updates: false

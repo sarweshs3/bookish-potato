@@ -1,0 +1,49 @@
+
+---
+- name: Install health-check dependencies
+  ansible.builtin.dnf:
+    name:
+      - curl
+      - cronie
+      - s-nail
+    state: present
+
+- name: Ensure health-check log directory exists
+  ansible.builtin.file:
+    path: "{{ healthcheck_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Ensure health-check log file exists
+  ansible.builtin.file:
+    path: "{{ healthcheck_log_file }}"
+    state: touch
+    owner: root
+    group: root
+    mode: "0644"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Install health-check script
+  ansible.builtin.template:
+    src: app-healthcheck.sh.j2
+    dest: "{{ healthcheck_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Enable and start cron service
+  ansible.builtin.systemd_service:
+    name: crond
+    enabled: true
+    state: started
+
+- name: Schedule health check every five minutes
+  ansible.builtin.cron:
+    name: Application health check
+    user: root
+    minute: "{{ healthcheck_schedule_minute }}"
+    job: "{{ healthcheck_script }}"
+    state: present
